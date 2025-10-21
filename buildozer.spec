@@ -5,7 +5,7 @@ package.domain = com.collepedia
 source.dir = .
 source.include_exts = py,png,jpg,jpeg,kv,atlas,json,ttf,otf
 version = 4.0
-requirements = python3,kivy==2.1.0,kivymd==1.1.1,requests,beautifulsoup4,lxml,deep_translator,collepedia,plyer,certifi,asyncio,cachetools,html2text,pycountry,httpx
+requirements = python3,kivy,kivymd,requests,beautifulsoup4,lxml,deep_translator,collepedia,plyer,certifi,asyncio,cachetools,html2text,pycountry,httpx
 orientation = portrait
 
 # Android API Levels: Min 21 (5.0 Lollipop) to Target 34 (Android 14) ensures wide compatibility
