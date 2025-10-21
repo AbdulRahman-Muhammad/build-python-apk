@@ -27,8 +27,8 @@ jobs:
       - name: Setup Python tooling
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install kivy==2.1.0 kivymd==1.1.1 requests beautifulsoup4 lxml deep_translator collepedia plyer certifi asyncio cachetools html2text pycountry httpx
           python3 -m pip install --user cython==0.29.33 buildozer
+          python3 -m pip install kivy kivymd requests beautifulsoup4 lxml deep_translator collepedia plyer certifi asyncio cachetools html2text pycountry httpx
           echo "${HOME}/.local/bin" >> $GITHUB_PATH
 
       - name: Prepare Buildozer SDK directories
