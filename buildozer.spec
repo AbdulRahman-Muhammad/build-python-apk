@@ -1,6 +1,6 @@
 [app]
 title = Collepedia Mobile
-package.name = collepediamobile
+package.name = app
 package.domain = com.collepedia
 source.dir = .
 source.include_exts = py,png,jpg,jpeg,kv,atlas,json,ttf,otf
