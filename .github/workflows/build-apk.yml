@@ -27,7 +27,7 @@ jobs:
       - name: Setup Python tooling
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install --user cython buildozer==1.5.0 beautifulsoup4 requests
+          python3 -m pip install --user cython==0.29.33 buildozer
           echo "${HOME}/.local/bin" >> $GITHUB_PATH
 
       - name: Prepare Buildozer SDK directories
