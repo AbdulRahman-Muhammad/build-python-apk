@@ -33,6 +33,10 @@ jobs:
 
       - name: Prepare Buildozer SDK directories
         run: |
+          mkdir -p $HOME/.buildozer/android/platform
+          cd $HOME/.buildozer/android/platform
+          git clone https://github.com/kivy/python-for-android.git
+          cd $HOME
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/build-tools
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/platforms
