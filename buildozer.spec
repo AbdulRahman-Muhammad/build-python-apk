@@ -1,14 +1,13 @@
 [app]
-title = MyApp
-package.name = myapp
+title = HelloAbdulrahman
+package.name = helloabd
 package.domain = org.example
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 1.0
-requirements = python3,kivy,bs4
+source.include_exts = py,kv,txt
+version = 0.1
+requirements = python3
 orientation = portrait
-fullscreen = 1
+log_level = 2
 
 [buildozer]
-log_level = 2
 warn_on_root = 0
