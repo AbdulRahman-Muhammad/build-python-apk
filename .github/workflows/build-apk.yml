@@ -22,7 +22,7 @@ jobs:
       - name: Install apt dependencies
         run: |
           sudo apt update
-          sudo apt install -y openjdk-17-jdk unzip wget zip build-essential zlib1g-dev
+          sudo apt install -y openjdk-17-jdk unzip wget zip build-essential zlib1g-dev libltdl-dev
 
       - name: Setup Python tooling
         run: |
