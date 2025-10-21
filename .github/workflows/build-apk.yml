@@ -5,38 +5,78 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  ANDROID_HOME: ${{ github.workspace }}/android-sdk
+  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+  JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+  BUILD_TOOLS_VERSION: "33.0.2"
+  ANDROID_PLATFORM: "android-33"
+  NDK_VERSION: "25.2.9519653"
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Setup apt dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip openjdk-17-jdk unzip wget git build-essential
-          pip install cython buildozer
+          sudo apt install -y openjdk-17-jdk unzip wget zip build-essential zlib1g-dev
 
-      - name: Install Android SDK + NDK
+      - name: Setup Python tooling
         run: |
-          mkdir -p $HOME/android-sdk
-          cd $HOME/android-sdk
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip
-          mkdir -p cmdline-tools/latest
-          mv cmdline-tools/* cmdline-tools/latest/
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
-          yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
-          sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user cython buildozer==1.5.0
+          echo "::add-path::${HOME}/.local/bin"
+        shell: bash
 
-      - name: Build APK
+      - name: Create Android SDK directory
+        run: mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"
+
+      - name: Download & install Android commandline tools
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
+          cd $HOME
+          TMP_ZIP=cmdline-tools.zip
+          # stable known commandlinetools package (versioned). If this URL changes in the future, replace with the latest command line tools zip.
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O $TMP_ZIP
+          unzip -q $TMP_ZIP -d cmdline-tools-temp
+          # move extracted cmdline-tools into the structure expected by sdkmanager:
+          mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools/latest"
+          mv cmdline-tools-temp/cmdline-tools/* "${ANDROID_SDK_ROOT}/cmdline-tools/latest/"
+          rm -rf cmdline-tools-temp $TMP_ZIP
+
+      - name: Export Android paths and install SDK components
+        run: |
+          export ANDROID_HOME=${ANDROID_SDK_ROOT}
+          export PATH=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${PATH}
+          yes | sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" --licenses || true
+          sdkmanager --sdk_root="${ANDROID_SDK_ROOT}" "platform-tools" "platforms;${ANDROID_PLATFORM}" "build-tools;${BUILD_TOOLS_VERSION}" "ndk;${NDK_VERSION}"
+        shell: bash
+
+      - name: Show sdk contents
+        run: |
+          echo "SDK root: ${ANDROID_SDK_ROOT}"
+          ls -la "${ANDROID_SDK_ROOT}"
+          ls -la "${ANDROID_SDK_ROOT}/cmdline-tools/latest"
+          java -version
+          sdkmanager --list --sdk_root="${ANDROID_SDK_ROOT}"
+
+      - name: Build APK with Buildozer
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+          PATH: ${{ env.PATH }}:${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${HOME}/.local/bin
+        run: |
+          # ensure buildozer is visible
+          export PATH=$HOME/.local/bin:$PATH
+          # optional CFLAGS/LDFLAGS for CI env
+          export CFLAGS="-I${ANDROID_SDK_ROOT}/platforms/${ANDROID_PLATFORM}/arch-arm/usr/include:/usr/include"
+          export LDFLAGS="-L${ANDROID_SDK_ROOT}/platforms/${ANDROID_PLATFORM}/arch-arm/usr/lib:/usr/lib"
           buildozer android debug
+        shell: bash
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
