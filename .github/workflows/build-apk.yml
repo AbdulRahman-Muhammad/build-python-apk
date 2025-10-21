@@ -9,7 +9,7 @@ env:
   JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
   BUILD_TOOLS_VERSION: "33.0.2"
   ANDROID_PLATFORM: "android-33"
-  NDK_VERSION: "25.2.9519653"
+  NDK_VERSION: "25b"
 
 jobs:
   build:
@@ -47,6 +47,11 @@ jobs:
           mkdir -p $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest
           mv cmdline-tools-temp/cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/
           rm -rf cmdline-tools-temp $TMP_ZIP
+          
+          # 🔹 Fix for Buildozer: create tools/bin symlink so sdkmanager is found
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+          ln -s $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager \
+                $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager
 
       - name: Export Buildozer Android paths
         run: |
@@ -57,13 +62,13 @@ jobs:
         run: |
           SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
           yes | sdkmanager --sdk_root=$SDK_ROOT --licenses
-          sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+          sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25b"
 
       - name: Build APK with Buildozer
         run: |
           export ANDROIDSDK=$HOME/.buildozer/android/platform/android-sdk
           export ANDROID_HOME=$ANDROIDSDK
-          export ANDROID_NDK_HOME=$ANDROIDSDK/ndk/25.2.9519653
+          export ANDROID_NDK_HOME=$ANDROIDSDK/ndk/android-ndk-r25b
           export PATH=$HOME/.local/bin:$PATH
           buildozer android debug
 
