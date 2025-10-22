@@ -12,14 +12,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build APK inside official Buildozer Docker
+      - name: Prepare permissions
+        run: |
+          sudo chown -R $USER:$USER ${{ github.workspace }}
+
+      - name: Build APK (non-root) using Buildozer
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}:/app \
-            -w /app \
-            -e BUILDOZER_ALLOW_ROOT=1 \
+            -u $(id -u):$(id -g) \
+            -v ${{ github.workspace }}:/home/user/app \
+            -w /home/user/app \
             kivy/buildozer:latest \
-            buildozer android debug
+            bash -c "yes | buildozer android debug"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
