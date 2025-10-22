@@ -1,58 +1,26 @@
-name: Build
+name: Build Android APK
+
 on:
   push:
-    branches-ignore:
-      - data
-      - gh-pages
-    tags:
-      - '**'
-  pull_request:
-    branches-ignore:
-      - data
-      - gh-pages
+    branches: [ main ]
 
 jobs:
-  # Build job. Builds app for Android with Buildozer
-  build-android:
-    name: Build for Android
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          path: main
 
-      - name: Add user
+      - name: Build APK inside official Buildozer Docker
         run: |
-          sudo useradd -m user || true
-          export USER=user
+          docker run --rm -v ${{ github.workspace }}:/app \
+            -w /app \
+            kivy/buildozer:latest \
+            buildozer android debug
 
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          command: buildozer android release
-          buildozer_version: stable
-
-      - name: Upload artifacts
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: package
-          path: ${{ steps.buildozer.outputs.filename }}
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: data
-          ref: data
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.7
-          architecture: x64
-
-      - name: Push binary to data branch
-        if: github.event_name == 'push'
-        run: python main/.ci/move_binary.py "${{ steps.buildozer.outputs.filename }}" main data bin
+          name: android-apk
+          path: bin/*.apk
