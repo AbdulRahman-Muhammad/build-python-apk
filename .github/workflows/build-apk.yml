@@ -27,7 +27,7 @@ jobs:
         uses: ArtemSBulgakov/buildozer-action@v1
         id: buildozer
         with:
-          workdir: .
+          command: buildozer android release
           buildozer_version: stable
 
       - name: Upload artifacts
