@@ -26,7 +26,7 @@ android.manifest.author = Nanasoft Technologies Agency
 # Add hooks if needed by plyer or other libraries for specific features, e.g., notifications
 # p4a.hook = hooks/hook-plyer.py # Create this file if necessary
 
-p4a.local_recipes = ~/.buildozer/android/platform/python-for-android/pythonforandroid/recipes
+p4a.local_recipes = .buildozer/android/platform/python-for-android/pythonforandroid/recipes
 
 # iOS specific settings (if targeting iOS later)
 #ios.kivy_ios_url = https://github.com/kivy/kivy-ios
