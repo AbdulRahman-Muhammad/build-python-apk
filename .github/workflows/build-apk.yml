@@ -1,71 +1,54 @@
-# .github/workflows/build-android.yml
-name: Build Android APK
-
+name: Build
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - data
+      - gh-pages
+    tags:
+      - '**'
   pull_request:
-    branches:
-      - main
+    branches-ignore:
+      - data
+      - gh-pages
 
 jobs:
+  # Build job. Builds app for Android with Buildozer
   build-android:
+    name: Build for Android
     runs-on: ubuntu-latest
-    env:
-      ANDROID_API: "34"
-      ANDROID_MINAPI: "21"
-      NDK_VERSION: "25.2.9519653"
-      BUILD_TOOLS_VERSION: "33.0.2"
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          path: main
 
-      - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jdk unzip wget zip build-essential zlib1g-dev libltdl-dev
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          repository_root: main
+          workdir: .
+          buildozer_version: stable
 
-      - name: Install pip dependencies including Buildozer & python-for-android
-        run: |
-          python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install cython==0.29.36
-          python3 -m pip install git+https://github.com/kivy/buildozer.git@master
-          python3 -m pip install git+https://github.com/kivy/python-for-android.git@master
-
-      - name: Prepare Android SDK/NDK
-        run: |
-          SDK_ROOT=.buildozer/android/platform/android-sdk
-          mkdir -p $SDK_ROOT/cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d cmdline-tools-temp
-          mv cmdline-tools-temp/cmdline-tools $SDK_ROOT/cmdline-tools/latest
-          rm -rf cmdline-tools.zip cmdline-tools-temp
-          yes | $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT --licenses
-          $SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$SDK_ROOT "platform-tools" "platforms;android-${{ env.ANDROID_API }}" "build-tools;${{ env.BUILD_TOOLS_VERSION }}" "ndk;${{ env.NDK_VERSION }}"
-
-      - name: Clone python-for-android recipes
-        run: |
-          mkdir -p .buildozer/android/platform
-          cd .buildozer/android/platform
-          git clone https://github.com/kivy/python-for-android.git
-
-      - name: Build APK
-        run: |
-          export ANDROIDSDK=.buildozer/android/platform/android-sdk
-          export ANDROID_HOME=$ANDROIDSDK
-          export ANDROID_NDK_HOME=$ANDROIDSDK/ndk/${{ env.NDK_VERSION }}
-          buildozer android clean
-          buildozer android release
-
-      - name: Upload APK artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: bin/*.apk
+          name: package
+          path: ${{ steps.buildozer.outputs.filename }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: data
+          ref: data
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.7
+          architecture: x64
+
+      - name: Push binary to data branch
+        if: github.event_name == 'push'
+        run: python main/.ci/move_binary.py "${{ steps.buildozer.outputs.filename }}" main data bin
