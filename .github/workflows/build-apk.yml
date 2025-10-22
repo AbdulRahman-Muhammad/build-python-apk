@@ -23,6 +23,11 @@ jobs:
         with:
           path: main
 
+      - name: Add user
+        run: |
+          sudo useradd -m user || true
+          export USER=user
+
       - name: Build with Buildozer
         uses: ArtemSBulgakov/buildozer-action@v1
         id: buildozer
