@@ -41,7 +41,7 @@ jobs:
 
       - name: Prepare Android SDK/NDK
         run: |
-          SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk
+          SDK_ROOT=.buildozer/android/platform/android-sdk
           mkdir -p $SDK_ROOT/cmdline-tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip -d cmdline-tools-temp
@@ -52,13 +52,13 @@ jobs:
 
       - name: Clone python-for-android recipes
         run: |
-          mkdir -p $HOME/.buildozer/android/platform
-          cd $HOME/.buildozer/android/platform
+          mkdir -p .buildozer/android/platform
+          cd .buildozer/android/platform
           git clone https://github.com/kivy/python-for-android.git
 
       - name: Build APK
         run: |
-          export ANDROIDSDK=$HOME/.buildozer/android/platform/android-sdk
+          export ANDROIDSDK=.buildozer/android/platform/android-sdk
           export ANDROID_HOME=$ANDROIDSDK
           export ANDROID_NDK_HOME=$ANDROIDSDK/ndk/${{ env.NDK_VERSION }}
           buildozer android clean
