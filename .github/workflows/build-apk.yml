@@ -59,17 +59,20 @@ jobs:
         $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platform-tools" "platforms;android-31" # Install specific build-tools and platform for API 31
 
     - name: Build with Buildozer
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}   # Pass ANDROID_HOME from previous steps
+        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }} # Pass ANDROID_NDK_HOME
       run: |
-        # Set environment variables for Buildozer to find the SDK
-        export ANDROID_HOME=$ANDROID_HOME
-        export ANDROID_NDK_HOME=$ANDROID_NDK_HOME # Often set by setup-android action
+        echo "--- Verifying Environment Variables ---"
+        echo "ANDROID_HOME is set to: $ANDROID_HOME"
+        echo "ANDROID_NDK_HOME is set to: $ANDROID_NDK_HOME"
+        echo "--- Listing Build Tools Directory ---"
+        ls -la $ANDROID_HOME/build-tools || echo "Build tools directory not found!"
+        echo "--- Running Buildozer ---"
+        
+        # Explicitly tell buildozer NOT to try installing SDK again
+        buildozer --verbose android debug --no-sdk-installations 
 
-        echo "ANDROID_HOME is $ANDROID_HOME"
-        echo "ANDROID_NDK_HOME is $ANDROID_NDK_HOME"
-        ls -la $ANDROID_HOME/build-tools # Verify build-tools exist
-        
-        buildozer android debug # Change to 'release' for a release build
-        
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
