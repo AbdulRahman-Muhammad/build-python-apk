@@ -40,6 +40,6 @@ p4a.local_recipes = .buildozer/android/platform/python-for-android/pythonforandr
 [buildozer]
 # Log level 2 provides maximum detail during build
 log_level = 2
-warn_on_root = 1
+warn_on_root = 0
 # Optional: Increase RAM for build process, helpful on limited machines
 # android.gradle_command = --no-daemon -Porg.gradle.jvmargs="-Xmx4096m"
