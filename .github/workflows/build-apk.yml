@@ -47,14 +47,29 @@ jobs:
       run: |
         pip install -r requirements.txt
 
-    - name: Setup Android SDK (via Buildozer)
-      # Buildozer usually downloads this, but running it explicitly can help debug
-      run: buildozer android update
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3 # Use a dedicated action for SDK setup
+
+    - name: Accept Android SDK Licenses
+      run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Install Android Build Tools and Platform Tools
+      run: |
+        echo "Installing build-tools;33.0.2 and platform-tools..."
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platform-tools" "platforms;android-31" # Install specific build-tools and platform for API 31
 
     - name: Build with Buildozer
       run: |
-        buildozer android debug # Change to 'release' for a release build (requires signing setup)
+        # Set environment variables for Buildozer to find the SDK
+        export ANDROID_HOME=$ANDROID_HOME
+        export ANDROID_NDK_HOME=$ANDROID_NDK_HOME # Often set by setup-android action
 
+        echo "ANDROID_HOME is $ANDROID_HOME"
+        echo "ANDROID_NDK_HOME is $ANDROID_NDK_HOME"
+        ls -la $ANDROID_HOME/build-tools # Verify build-tools exist
+        
+        buildozer android debug # Change to 'release' for a release build
+        
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
