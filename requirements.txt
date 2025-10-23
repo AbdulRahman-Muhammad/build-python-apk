@@ -1,0 +1,14 @@
+kivy
+kivymd
+requests
+beautifulsoup4
+lxml
+deep_translator
+collepedia
+plyer
+certifi
+asyncio
+cachetools
+html2text
+pycountry
+httpx
