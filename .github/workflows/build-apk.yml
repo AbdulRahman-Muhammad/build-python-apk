@@ -12,16 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Prepare permissions
-        run: |
-          sudo chown -R $USER:$USER ${{ github.workspace }}
-
-      - name: Build APK (non-root) using Buildozer
+      - name: Build APK as root (auto-confirm prompts)
         run: |
           docker run --rm \
-            -u $(id -u):$(id -g) \
-            -v ${{ github.workspace }}:/home/user/app \
-            -w /home/user/app \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
             kivy/buildozer:latest \
             bash -c "yes | buildozer android debug"
 
