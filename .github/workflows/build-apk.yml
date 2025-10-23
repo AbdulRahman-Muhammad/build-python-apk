@@ -1,27 +1,63 @@
-name: Build Android APK
+name: Build Collepedia Mobile APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ] # Trigger on push to the main branch
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-android:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Build APK as root (auto-confirm prompts)
-        run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/app \
-            -w /app \
-            kivy/buildozer:latest \
-            android release
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # Match the Python version you used
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: bin/*.apk
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          git \
+          zip \
+          unzip \
+          build-essential \
+          autoconf \
+          libtool \
+          pkg-config \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libffi-dev \
+          libssl-dev \
+          openjdk-17-jdk # Required for Android SDK tools
+
+    - name: Install Cython and Buildozer
+      run: |
+        pip install --upgrade pip
+        pip install cython==0.29.36 # Specify a known compatible version
+        pip install buildozer
+
+    - name: Install app dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Setup Android SDK (via Buildozer)
+      # Buildozer usually downloads this, but running it explicitly can help debug
+      run: buildozer android update
+
+    - name: Build with Buildozer
+      run: |
+        buildozer android debug # Change to 'release' for a release build (requires signing setup)
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: collepedia-mobile-apk
+        path: bin/*.apk # Path where Buildozer places the APK
